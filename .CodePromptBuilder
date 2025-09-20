@@ -1,0 +1,17 @@
+{
+  "SourceDirectory": "C:\\Development\\CodePromptBuilder",
+  "FileExtensions": "*.cs; *.csproj; *.sln; *.json; *.xml; *.xslt; *.sql; *.txt; *.md;",
+  "UserPrompt": "",
+  "SystemPrompt": "",
+  "IsSystemPromptEnabled": true,
+  "IsUserPromptEnabled": true,
+  "CheckedPaths": [
+    "C:\\Development\\CodePromptBuilder\\CodePromptBuilder.csproj",
+    "C:\\Development\\CodePromptBuilder\\CodePromptBuilder.sln",
+    "C:\\Development\\CodePromptBuilder\\Form1.cs",
+    "C:\\Development\\CodePromptBuilder\\Form1.Designer.cs",
+    "C:\\Development\\CodePromptBuilder\\Program.cs",
+    "C:\\Development\\CodePromptBuilder\\Requirements.md"
+  ],
+  "CollapsedPaths": []
+}
