@@ -27,7 +27,7 @@ It is designed to streamline creating rich AI / LLM context prompts from local s
   ```
   ```
 - Graceful error handling for unreadable files or directories
-- Supports multi?selection accumulation—add/remove checks and regenerate instantly
+- Supports multi?selection accumulationâ€”add/remove checks and regenerate instantly
 
 ## How It Works
 
@@ -65,7 +65,7 @@ The app parses every `.gitignore` under the selected root (depth?ordered) and bu
 
 ## File Inclusion Logic
 
-Only explicitly checked file nodes are included. (Directories are not checkable.) For each checked directory path variant (rare—normally not checkable), the code defensively enumerates its immediate children; but by design the UI prevents directory checking.
+Only explicitly checked file nodes are included. (Directories are not checkable.) For each checked directory path variant (rareâ€”normally not checkable), the code defensively enumerates its immediate children; but by design the UI prevents directory checking.
 
 Extension patterns are applied when using the Select button and again during generation if directory enumeration occurs.
 
@@ -124,19 +124,19 @@ Suggested contribution workflow:
 
 ## License
 
-MIT License (you may adjust if you choose a different license). Be sure to add a `LICENSE` file if publishing publicly.
+MIT License.
 
 ## Security / Privacy
 
 - No network calls are made by the application.
 - All processing stays local; only the Clipboard is written.
-- Settings file may contain prompt text—avoid storing secrets.
+- Settings file may contain prompt textâ€”avoid storing secrets.
 
 ## Troubleshooting
 
 - Nothing appears in the tree: ensure the selected directory exists and you have read permission.
 - Files missing: they may be excluded by `.gitignore` or start with a dot directory segment.
-- Clipboard not updated: some clipboard managers/security tools can block access—retry or run elevated if necessary.
+- Clipboard not updated: some clipboard managers/security tools can block accessâ€”retry or run elevated if necessary.
 - Build errors: verify you have the .NET 9 SDK installed (`dotnet --info`).
 
 ## Acknowledgments
