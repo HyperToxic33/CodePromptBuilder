@@ -554,6 +554,7 @@ public class MainForm : Form
     private CheckBox chkSystemPrompt = null!;
     private TextBox txtSystemPrompt = null!;
     private Button btnGenerate = null!;
+    private Button btnReencode = null!;
     private TextBox txtPreview = null!;
     private StatusStrip statusStrip = null!;
     private ToolStripStatusLabel statusLabel = null!;
@@ -691,8 +692,19 @@ public class MainForm : Form
         previewLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         txtPreview = new TextBox { Dock = DockStyle.Fill, Multiline = true, ScrollBars = ScrollBars.Vertical, ReadOnly = true, Font = new Font("Consolas", 9F), BackColor = SystemColors.Window };
         btnGenerate = new Button { Text = "Generate", AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(0, 8, 0, 0) };
+        btnReencode = new Button { Text = "Normalize Files", AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(8, 8, 0, 0) };
+        var previewButtonPanel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            Margin = new Padding(0),
+            Padding = new Padding(0)
+        };
+        previewButtonPanel.Controls.Add(btnGenerate);
+        previewButtonPanel.Controls.Add(btnReencode);
         previewLayout.Controls.Add(txtPreview, 0, 0);
-        previewLayout.Controls.Add(btnGenerate, 0, 1);
+        previewLayout.Controls.Add(previewButtonPanel, 0, 1);
         previewGroup.Controls.Add(previewLayout);
         rightTable.Controls.Add(previewGroup, 0, 2);
 
@@ -707,6 +719,7 @@ public class MainForm : Form
         btnClearSelection.Click += BtnClearSelection_Click;
         btnSelectExtensions.Click += BtnSelectExtensions_Click;
         btnGenerate.Click += BtnGenerate_Click;
+        btnReencode.Click += BtnReencode_Click;
 
         txtSourceDirectory.TextChanged += TxtSourceDirectory_TextChanged;
         txtFileExtensions.TextChanged += OnSettingsFieldChanged;
@@ -1262,6 +1275,104 @@ public class MainForm : Form
         currentSettings.IsUserPromptEnabled = chkUserPrompt.Checked;
         currentSettings.CheckedPaths ??= new List<string>();
         currentSettings.CollapsedPaths ??= new List<string>();
+    }
+
+    private void BtnReencode_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var filesToProcess = CollectFilesForPrompt();
+
+            if (!filesToProcess.Any())
+            {
+                MessageBox.Show("Select at least one file to normalize.", "No Files Selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                statusLabel.Text = "No files selected for re-encode.";
+                return;
+            }
+
+            statusLabel.Text = "Normalizing selected files...";
+            Application.DoEvents();
+
+            var targetEncoding = new UTF8Encoding(false);
+            int updatedCount = 0;
+            int skippedCount = 0;
+            var errors = new List<string>();
+
+            foreach (var filePath in filesToProcess)
+            {
+                try
+                {
+                    using var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, new FileStreamOptions() { Access = FileAccess.Read, Mode = FileMode.Truncate, Share = FileShare.Read });
+                    string originalContent = reader.ReadToEnd();
+
+                    if (originalContent.IndexOf('\0') >= 0)
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    string normalizedContent = NormalizeLineEndingsToCRLF(originalContent);
+
+                    var writeFileStreamOptions = new FileStreamOptions
+                    {
+                        Access = FileAccess.Write,
+                        Mode = FileMode.Truncate,
+                        Share = FileShare.Write,
+                        Options = FileOptions.WriteThrough,
+                    };
+
+                    using var writer = new StreamWriter(filePath, targetEncoding, writeFileStreamOptions);
+                    writer.Write(normalizedContent);
+                    updatedCount++;
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    errors.Add($"{filePath}: {ex.Message}");
+                }
+                catch (IOException ex)
+                {
+                    errors.Add($"{filePath}: {ex.Message}");
+                }
+                catch (DecoderFallbackException ex)
+                {
+                    errors.Add($"{filePath}: {ex.Message}");
+                }
+            }
+
+            statusLabel.Text = $"Re-encode complete. Updated {updatedCount} file(s){(skippedCount > 0 ? $", skipped {skippedCount} binary file(s)." : ".")}";
+
+            if (errors.Count > 0)
+            {
+                MessageBox.Show("Some files could not be normalized:\n" + string.Join("\n", errors), "Re-encode completed with warnings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            statusLabel.Text = "Error normalizing files.";
+            MessageBox.Show($"An unexpected error occurred while normalizing files: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static string NormalizeLineEndingsToCRLF(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+        {
+            return content;
+        }
+
+        string crlf = NormalizeLineEndingsToLF(content).Replace("\n", "\r\n");
+        return crlf;
+    }
+
+    private static string NormalizeLineEndingsToLF(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+        {
+            return content;
+        }
+
+        string crlf = content.Replace("\r\n", "\n").Replace("\n\r", "\n").Replace("\r", "\n");
+        return crlf;
     }
 
     private void BtnGenerate_Click(object? sender, EventArgs e)
