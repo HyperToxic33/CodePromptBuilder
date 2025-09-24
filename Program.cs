@@ -1298,12 +1298,30 @@ public class MainForm : Form
             int skippedCount = 0;
             var errors = new List<string>();
 
-            foreach (var filePath in filesToProcess)
+            FileStreamOptions readerFileStreamOptions = new() 
+            { 
+                Access = FileAccess.Read, 
+                Mode = FileMode.Open, 
+                Share = FileShare.Read 
+            };
+
+            FileStreamOptions writerFileStreamOptions = new()
+            {
+                Access = FileAccess.Write,
+                Mode = FileMode.Truncate,
+                Share = FileShare.Write,
+                Options = FileOptions.WriteThrough,
+            };
+
+            foreach (string path in filesToProcess)
             {
                 try
                 {
-                    using var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, new FileStreamOptions() { Access = FileAccess.Read, Mode = FileMode.Truncate, Share = FileShare.Read });
-                    string originalContent = reader.ReadToEnd();
+                    string originalContent; 
+                    {
+                        using StreamReader reader = new(path, Encoding.UTF8, true, readerFileStreamOptions);
+                        originalContent = reader.ReadToEnd();
+                    }
 
                     if (originalContent.IndexOf('\0') >= 0)
                     {
@@ -1313,38 +1331,37 @@ public class MainForm : Form
 
                     string normalizedContent = NormalizeLineEndingsToCRLF(originalContent);
 
-                    var writeFileStreamOptions = new FileStreamOptions
                     {
-                        Access = FileAccess.Write,
-                        Mode = FileMode.Truncate,
-                        Share = FileShare.Write,
-                        Options = FileOptions.WriteThrough,
-                    };
+                        using StreamWriter writer = new(path, targetEncoding, writerFileStreamOptions);
+                        writer.Write(normalizedContent);
+                    }
 
-                    using var writer = new StreamWriter(filePath, targetEncoding, writeFileStreamOptions);
-                    writer.Write(normalizedContent);
                     updatedCount++;
                 }
                 catch (UnauthorizedAccessException ex)
                 {
-                    errors.Add($"{filePath}: {ex.Message}");
+                    errors.Add($"{path}: {ex.Message}");
                 }
                 catch (IOException ex)
                 {
-                    errors.Add($"{filePath}: {ex.Message}");
+                    errors.Add($"{path}: {ex.Message}");
                 }
                 catch (DecoderFallbackException ex)
                 {
-                    errors.Add($"{filePath}: {ex.Message}");
+                    errors.Add($"{path}: {ex.Message}");
                 }
             }
-
-            statusLabel.Text = $"Re-encode complete. Updated {updatedCount} file(s){(skippedCount > 0 ? $", skipped {skippedCount} binary file(s)." : ".")}";
 
             if (errors.Count > 0)
             {
                 MessageBox.Show("Some files could not be normalized:\n" + string.Join("\n", errors), "Re-encode completed with warnings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+            else
+            {
+                MessageBox.Show("Files have been normalized.", "Re-encode completed.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            statusLabel.Text = $"Re-encode complete. Updated {updatedCount} file(s){(skippedCount > 0 ? $", skipped {skippedCount} binary file(s)." : ".")}";
         }
         catch (Exception ex)
         {

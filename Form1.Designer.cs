@@ -1,4 +1,4 @@
-﻿namespace CodePromptBuilder;
+namespace CodePromptBuilder;
 
 partial class Form1
 {
@@ -36,3 +36,4 @@ partial class Form1
 
     #endregion
 }
+

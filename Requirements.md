@@ -1,4 +1,4 @@
-﻿Core Functionality
+Core Functionality
 UI Controls:
 
 Inputs: Text inputs for a Source Directory (with a "Browse" button) and semicolon-delimited File Extensions.
