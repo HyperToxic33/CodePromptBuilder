@@ -1564,4 +1564,3 @@ public class MainForm : Form
         return Regex.IsMatch(input, regexPattern, RegexOptions.IgnoreCase);
     }
 }
-
