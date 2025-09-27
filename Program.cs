@@ -656,6 +656,7 @@ public class MainForm : Form
             Dock = DockStyle.Fill,
             RowCount = 3
         };
+        rightTable.RowStyles.Clear();
         rightTable.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333F));
         rightTable.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333F));
         rightTable.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333F));
@@ -687,24 +688,42 @@ public class MainForm : Form
 
         // Row 3: Preview
         var previewGroup = new GroupBox { Text = "Preview", Dock = DockStyle.Fill, Padding = new Padding(10) };
-        var previewLayout = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2 };
-        previewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        previewLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        txtPreview = new TextBox { Dock = DockStyle.Fill, Multiline = true, ScrollBars = ScrollBars.Vertical, ReadOnly = true, Font = new Font("Consolas", 9F), BackColor = SystemColors.Window };
-        btnGenerate = new Button { Text = "Generate", AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(0, 8, 0, 0) };
-        btnReencode = new Button { Text = "Normalize Files", AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(8, 8, 0, 0) };
-        var previewButtonPanel = new FlowLayoutPanel
+        var previewLayout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.RightToLeft,
-            WrapContents = false,
+            ColumnCount = 1,
+            RowCount = 2,
             Margin = new Padding(0),
             Padding = new Padding(0)
         };
+        previewLayout.ColumnStyles.Clear();
+        previewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        previewLayout.RowStyles.Clear();
+        previewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        previewLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        txtPreview = new TextBox { Dock = DockStyle.Fill, Multiline = true, ScrollBars = ScrollBars.Vertical, ReadOnly = true, Font = new Font("Consolas", 9F), BackColor = SystemColors.Window, Margin = new Padding(0) };
+        btnGenerate = new Button { Text = "Generate", AutoSize = true, Margin = new Padding(8, 8, 0, 0) };
+        btnReencode = new Button { Text = "Normalize Files", AutoSize = true, Margin = new Padding(8, 8, 0, 0) };
+
+        var previewButtonPanel = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            FlowDirection = FlowDirection.RightToLeft,
+            Dock = DockStyle.None,
+            Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
+            WrapContents = false,
+            Margin = new Padding(0, 8, 0, 0),
+            Padding = new Padding(0)
+        };
+
         previewButtonPanel.Controls.Add(btnGenerate);
         previewButtonPanel.Controls.Add(btnReencode);
+
         previewLayout.Controls.Add(txtPreview, 0, 0);
         previewLayout.Controls.Add(previewButtonPanel, 0, 1);
+
         previewGroup.Controls.Add(previewLayout);
         rightTable.Controls.Add(previewGroup, 0, 2);
 
